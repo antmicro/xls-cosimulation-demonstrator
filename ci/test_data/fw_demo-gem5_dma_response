@@ -1,0 +1,28 @@
+==== m5 terminal: Terminal 0 ====
+check_init: Seems that we started cleanly.
+RISC-V CSRs: MVENDORID=00000000, MARCHID=00000000, MIMPID=00000000, MHARTID=00000000, MSTATUS=00002000, MISA=4014112d, MIE=00000000
+[INFO] Input symbol size: 5 bytes
+[INFO] Output symbol size: 5 bytes
+Enter RLE input:
+Hello, Abby!
+RLE input: Hello,
+Running RLE...
+DMA transfer "SIM->XLS" complete. Transferred 30 bytes
+DMA transfer "XLS->SIM" complete. Transferred 25 bytes
+DMA tranfer "XLS->SIM" timed out. Transferred 25 bytes
+[H, 1]
+[e, 1]
+[l, 2]
+[o, 1]
+[,, 1] (last)
+
+Enter RLE input:
+RLE input: Abby!
+Running RLE...
+DMA transfer "SIM->XLS" complete. Transferred 25 bytes
+DMA transfer "XLS->SIM" complete. Transferred 20 bytes
+DMA tranfer "XLS->SIM" timed out. Transferred 20 bytes
+[A, 1]
+[b, 2]
+[y, 1]
+[!, 1] (last)

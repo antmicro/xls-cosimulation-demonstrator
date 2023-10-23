@@ -1,0 +1,153 @@
+image: debian:bullseye
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  GITLAB_MATRIX_PATH: matrix-gitlab.json
+
+stages:
+- build
+- test
+
+# Follow dependencies from: https://github.com/google/xls/blob/main/Dockerfile-ubuntu-22.04
+.common_before_script: &common_before_script |-
+  apt update
+  apt install -y python3-distutils python3-dev python-is-python3 libtinfo5  build-essential liblapack-dev libblas-dev gfortran
+  apt install -y wget python3-pip
+
+.install_gem5_deps: &install_gem5_deps |-
+  apt install -y scons m4 libgoogle-perftools-dev protobuf-compiler
+
+.install_renode_deps: &install_renode_deps |-
+  apt install -y dirmngr ca-certificates gnupg
+  gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+  echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/debian stable-buster main" | tee /etc/apt/sources.list.d/mono-official-stable.list
+  apt update
+  apt install -y mono-devel policykit-1 screen uml-utilities libc6-dev gcc git automake autoconf libtool g++ coreutils policykit-1 libgtk2.0-dev gtk-sharp2
+
+.install_bazel: &install_bazel |-
+  wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
+  chmod +x /usr/local/bin/bazel
+
+.enter_xls_submodule: &enter_xls_submodule |-
+  pushd xls
+
+.enter_gem5_submodule: &enter_gem5_submodule |-
+  pushd gem5
+
+.enter_renode_submodule: &enter_renode_submodule |-
+  pushd renode
+
+.enter_firmware_submodule: &enter_firmware_submodule |-
+  pushd firmware
+
+.setup_firmware_config: &setup_firmware_config |-
+  export PLATFORM=`python3 ci/gitlab_get_matrix_config.py ${CI_NODE_INDEX} platform`
+  export MAKE_CONFIG=`python3 ci/gitlab_get_matrix_config.py ${CI_NODE_INDEX} config`
+
+rle:
+  stage: build
+  before_script:
+  - *common_before_script
+  - *install_bazel
+  - *enter_xls_submodule
+  script:
+  - bazel build //xls/modules/rle:rle_enc_opt_ir
+  - popd
+  - cp xls/bazel-bin/xls/modules/rle/rle_enc_opt_ir.opt.ir rle_enc_opt_ir.opt.ir
+  artifacts:
+    name: rle_enc_opt_ir.opt.ir
+    when: on_success
+    paths:
+    - "rle_enc_opt_ir.opt.ir"
+
+#renode-plugin:
+#  stage: build
+#  before_script:
+#  - *common_before_script
+#  - *install_bazel
+#  - *enter_xls_submodule
+#  script:
+#  - bazel build //xls/simulation/renode:renode_xls_peripheral_plugin
+#  - popd
+#  - cp xls/bazel-bin/xls/simulation/renode/librenode_xls_peripheral_plugin.so librenode_xls_peripheral_plugin.so
+#  artifacts:
+#    name: librenode_xls_peripheral_plugin.so
+#    when: on_success
+#    paths:
+#    - "librenode_xls_peripheral_plugin.so"
+
+gem5-plugin:
+  stage: build
+  before_script:
+  - *common_before_script
+  - *install_bazel
+  - *enter_xls_submodule
+  script:
+  - bazel build //xls/simulation/gem5:gem5_xls_plugin
+  - popd
+  - cp xls/bazel-bin/xls/simulation/gem5/libgem5_xls_plugin.so libgem5_xls_plugin.so
+  artifacts:
+    name: libgem5_xls_plugin.so
+    when : on_success
+    paths:
+    - "libgem5_xls_plugin.so"
+
+gem5:
+  stage: build
+  before_script:
+  - *common_before_script
+  - *install_gem5_deps
+  - *enter_gem5_submodule
+  script:
+  - scons build/RISCV/gem5.debug -j `nproc`
+  artifacts:
+    name: gem5
+    when : on_success
+    paths:
+    - "gem5/build/RISCV/gem5.debug"
+
+#renode:
+#  stage: build
+#  before_script:
+#  - *common_before_script
+#  - *install_renode_deps
+#  - *enter_renode_submodule
+#  script:
+#  - ./build.sh
+#  artifacts:
+#    name: renode
+#    when : on_success
+#    paths:
+#    - "renode/renode"
+
+create_matrix:
+  stage: build
+  before_script:
+  - export DEBIAN_FRONTEND=noninteractive
+  - apt -qqy update
+  - apt install -y python3
+  script:
+  - python3 ci/generate_matrix.py gitlab ci/matrix.json
+  artifacts:
+    paths: [$GITLAB_MATRIX_PATH]
+
+test:
+  stage: test
+  parallel: 5
+  before_script:
+  - *common_before_script
+  - *install_gem5_deps
+  - *setup_firmware_config
+  - *enter_firmware_submodule
+  - source ./ci/get_toolchain.sh
+  script:
+  - echo `pwd`
+  - "echo Building the firmware PLATFORM: ${PLATFORM}, CONFIG: ${MAKE_CONFIG}"
+  - "echo Firmware will be exported as fw/`../ci/generate_fw_name.py`.elf"
+  - make PLATFORM=${PLATFORM} ${MAKE_CONFIG}
+  - mkdir fw
+  - popd
+  - echo "Testing the cosimulation"
+  - ./ci/run_response_test.py --simulator gem5
+    --firmware `realpath firmware/out/${PLATFORM}/fw_${PLATFORM}.elf`
+    --plugin `realpath libgem5_xls_plugin.so`

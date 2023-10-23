@@ -1,0 +1,15 @@
+[submodule "xls"]
+	path = xls
+	url = https://github.com/antmicro/xls.git
+	branch = cosimulation-demo-v3
+[submodule "gem5"]
+	path = gem5
+	url = https://github.com/antmicro/gem5.git
+	branch = cosimulation-demo-v3
+[submodule "renode"]
+	path = renode
+	url = https://github.com/renode/renode.git
+[submodule "firmware"]
+	path = firmware
+	url = https://github.com/antmicro/xls-cosimulation-riscv-firmware.git
+	branch = cosimulation-demo-v3

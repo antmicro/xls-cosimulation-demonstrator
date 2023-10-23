@@ -1,0 +1,20 @@
+path_to_ir_design: "rle_enc_opt_ir.opt.ir"
+dma_axi_sm_config {
+  base_address: 0x0
+  axi_channels {
+    base_config {
+      ir_name: "rle_enc__input_r";
+      DMA_ID: 0;
+    };
+    dataIdxs: 0;
+    lastIdx: 1;
+  }
+  axi_channels {
+    base_config {
+      ir_name: "rle_enc__output_s";
+      DMA_ID: 1;
+    };
+    dataIdxs: 0;
+    lastIdx: 1;
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "platform": [
+        "demo-gem5"
+    ],
+
+    "config": [
+        "DMA=none INTERRUPTS=no",
+        "DMA=dma INTERRUPTS=no",
+        "DMA=dma INTERRUPTS=yes",
+        "DMA=axidma INTERRUPTS=no",
+        "DMA=axidma INTERRUPTS=yes"
+    ]
+}
