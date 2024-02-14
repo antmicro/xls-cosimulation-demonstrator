@@ -50,7 +50,7 @@ jobs:
   Build-Gem5:
     name: Build Gem5
     runs-on: ubuntu-22.04
-    container: debian:bullseye
+    container: debian:bookworm
 
     steps:
     - name: Install dependencies
@@ -58,7 +58,7 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         apt -qqy update
         apt install -y git
-        apt install -y python3-distutils python3-dev python-is-python3 libtinfo5 build-essential liblapack-dev libblas-dev gfortran
+        apt install -y python3-distutils python3-dev python-is-python3 libtinfo5 build-essential liblapack-dev libblas-dev gfortran libxml2
         apt install -y wget python3-pip
 
         apt install -y scons m4 libgoogle-perftools-dev protobuf-compiler
@@ -95,7 +95,7 @@ jobs:
       run: |
         export DEBIAN_FRONTEND=noninteractive
         sudo apt -qqy update
-        sudo apt install -y python3-distutils python3-dev python-is-python3 libtinfo5 build-essential liblapack-dev libblas-dev gfortran
+        sudo apt install -y python3-distutils python3-dev python-is-python3 libtinfo5 build-essential liblapack-dev libblas-dev gfortran libxml2
         sudo apt install -y wget python3-pip
 
     - name: Install bazel
@@ -127,7 +127,7 @@ jobs:
     name: Test (${{ matrix.platform }} | ${{ matrix.config }})
     needs: [generate_matrix, Build-XLS, Build-Gem5]
     runs-on: ubuntu-22.04
-    container: debian:bullseye
+    container: debian:bookworm
 
     strategy:
       fail-fast: false
@@ -140,7 +140,7 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         apt -qqy update
         apt install -y git
-        apt install -y python3-distutils python3-dev python-is-python3 libtinfo5 build-essential liblapack-dev libblas-dev gfortran
+        apt install -y python3-distutils python3-dev python-is-python3 libtinfo5 build-essential liblapack-dev libblas-dev gfortran libxml2
         apt install -y wget python3-pip
 
         apt install -y scons m4 libgoogle-perftools-dev protobuf-compiler

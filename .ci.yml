@@ -1,4 +1,4 @@
-image: debian:bullseye
+image: debian:bookworm
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -11,7 +11,7 @@ stages:
 # Follow dependencies from: https://github.com/google/xls/blob/main/Dockerfile-ubuntu-22.04
 .common_before_script: &common_before_script |-
   apt update
-  apt install -y python3-distutils python3-dev python-is-python3 libtinfo5  build-essential liblapack-dev libblas-dev gfortran
+  apt install -y python3-distutils python3-dev python-is-python3 libtinfo5  build-essential liblapack-dev libblas-dev gfortran libxml2
   apt install -y wget python3-pip
 
 .install_gem5_deps: &install_gem5_deps |-
