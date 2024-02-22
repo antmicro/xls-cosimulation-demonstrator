@@ -19,7 +19,7 @@ name: Pipeline
 on:
   workflow_call:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "55575-renode" ]
   pull_request:
     branches: [ "main" ]
 
